@@ -1,6 +1,3 @@
-const { match } = require("assert");
-const { readFileSync } = require("fs");
-
 // Numeric version
 /*
 function hasTwoAdjacent(num) {
