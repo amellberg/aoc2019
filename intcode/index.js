@@ -1,9 +1,13 @@
-// Opcodes corresponding to instructions for the computer
-const OpCode = {
+// Instructions and their corresponding opcodes
+const Instr = {
     Add: 1,
     Mult: 2,
     SaveInput: 3,
     Output: 4,
+    JumpIfTrue: 5,
+    JumpIfFalse: 6,
+    LessThan: 7,
+    Equals: 8,
     Halt: 99
 };
 
@@ -30,7 +34,7 @@ class Computer {
         let res;
         for (;;) {
             const { op, pmodes } = parseInstruction(this.memory[this.ip]);
-            if (op === OpCode.Halt) break;
+            if (op === Instr.Halt) break;
             if ((res = this.exec(op, this.paramVals(pmodes))) !== undefined) {
                 output.push(res);
             }
@@ -38,10 +42,10 @@ class Computer {
         return output;
     }
 
-    // Returns the three memory values corresponding to each parameter, taking
-    // the parameter mode into account. Some returned values might be undefined
-    // (when the instruction pointer is close to the end of the program), but
-    // they are never used by the corresponding instruction.
+    // Returns the three memory pointers corresponding to each parameter,
+    // taking the parameter modes x, y, z into account. Some returned values
+    // might be undefined (when the instruction pointer is close to the end of
+    // the program), but they are never used by the corresponding instruction.
     paramVals([x, y, z]) {
         return {
             a: x === PMode.Position ? this.memory[this.ip + 1] : this.ip + 1,
@@ -55,21 +59,35 @@ class Computer {
     // parameter mode).
     exec(op, { a, b, c }) {
         switch (op) {
-            case OpCode.Add:
+            case Instr.Add:
                 this.memory[c] = this.memory[a] + this.memory[b];
                 this.ip += 4;
-                break;
-            case OpCode.Mult:
+                return;
+            case Instr.Mult:
                 this.memory[c] = this.memory[a] * this.memory[b];
                 this.ip += 4;
-                break;
-            case OpCode.SaveInput:
+                return;
+            case Instr.SaveInput:
                 this.memory[a] = this.input;
                 this.ip += 2;
-                break;
-            case OpCode.Output:
+                return;
+            case Instr.Output:
                 this.ip += 2;
                 return this.memory[a];
+            case Instr.JumpIfTrue:
+                this.ip = this.memory[a] !== 0 ? this.memory[b] : this.ip + 3;
+                return;
+            case Instr.JumpIfFalse:
+                this.ip = this.memory[a] == 0 ? this.memory[b] : this.ip + 3;
+                return;
+            case Instr.LessThan:
+                this.memory[c] = this.memory[a] < this.memory[b] ? 1 : 0;
+                this.ip += 4;
+                return;
+            case Instr.Equals:
+                this.memory[c] = this.memory[a] === this.memory[b] ? 1 : 0;
+                this.ip += 4;
+                return;
         }
     }
 }
