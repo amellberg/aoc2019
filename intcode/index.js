@@ -1,22 +1,22 @@
-// Opcodes for the computer
-const Op = {
+// Opcodes corresponding to instructions for the computer
+const OpCode = {
     Add: 1,
     Mult: 2,
     SaveInput: 3,
     Output: 4,
-    Halt: 99,
+    Halt: 99
 };
 
 // Parameter modes
-const Mode = {
-    Position: 0,
-    Immediate: 1,
+const PMode = {
+    Position: 0, // Treat parameter as a pointer to another memory value
+    Immediate: 1 // Treat parameter as a direct value
 };
 
 class Computer {
     constructor() {
-        this.memory = []; // Holds an intcode program
-        this.ip = 0; // Instruction pointer; current position in memory
+        this.memory = [];
+        this.ip = 0;
     }
 
     load(program) {
@@ -24,28 +24,68 @@ class Computer {
         this.ip = 0;
     }
 
-    run() {
-        const getAddresses = () => ({
-            a: this.memory[this.ip + 1],
-            b: this.memory[this.ip + 2],
-            c: this.memory[this.ip + 3],
-        });
-
-        let opcode;
-        while ((opcode = this.memory[this.ip]) != Op.Halt) {
-            const { a, b, c } = getAddresses();
-            switch (opcode) {
-                case Op.Add:
-                    this.memory[c] = this.memory[a] + this.memory[b];
-                    this.ip += 4;
-                    break;
-                case Op.Mult:
-                    this.memory[c] = this.memory[a] * this.memory[b];
-                    this.ip += 4;
-                    break;
+    run(input) {
+        this.input = input;
+        const output = [];
+        let res;
+        for (;;) {
+            const { op, pmodes } = parseInstruction(this.memory[this.ip]);
+            if (op === OpCode.Halt) break;
+            if ((res = this.exec(op, this.paramVals(pmodes))) !== undefined) {
+                output.push(res);
             }
+        }
+        return output;
+    }
+
+    // Returns the three memory values corresponding to each parameter, taking
+    // the parameter mode into account. Some returned values might be undefined
+    // (when the instruction pointer is close to the end of the program), but
+    // they are never used by the corresponding instruction.
+    paramVals([x, y, z]) {
+        return {
+            a: x === PMode.Position ? this.memory[this.ip + 1] : this.ip + 1,
+            b: y === PMode.Position ? this.memory[this.ip + 2] : this.ip + 2,
+            c: z === PMode.Position ? this.memory[this.ip + 3] : this.ip + 3
+        };
+    }
+
+    // Executes the instruction corresponding to op, using the parameter values
+    // a, b and c (which must already have been resolved using the correct
+    // parameter mode).
+    exec(op, { a, b, c }) {
+        switch (op) {
+            case OpCode.Add:
+                this.memory[c] = this.memory[a] + this.memory[b];
+                this.ip += 4;
+                break;
+            case OpCode.Mult:
+                this.memory[c] = this.memory[a] * this.memory[b];
+                this.ip += 4;
+                break;
+            case OpCode.SaveInput:
+                this.memory[a] = this.input;
+                this.ip += 2;
+                break;
+            case OpCode.Output:
+                this.ip += 2;
+                return this.memory[a];
         }
     }
 }
 
-module.exports = Computer;
+// Helper function that returns the opcode and the parameter modes as an array,
+// e.g. parseInstruction(10004) => { op: 4, pmodes: [0,0,1] }
+function parseInstruction(code) {
+    const op = code % 100;
+    const pmodes = [];
+
+    code = Math.trunc(code / 100);
+    for (let i = 0; i < 3; i++) {
+        pmodes.push(code % 10);
+        code = Math.trunc(code / 10);
+    }
+    return { op, pmodes };
+}
+
+module.exports = { Computer, parseInstruction };
