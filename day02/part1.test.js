@@ -1,4 +1,4 @@
-const Computer = require("../intcode")
+const { Computer } = require("../intcode");
 
 const testCases = [
     {
@@ -21,13 +21,13 @@ const testCases = [
         program: [1, 1, 1, 4, 99, 5, 6, 0, 99],
         want: [30, 1, 1, 4, 2, 5, 6, 0, 99],
     },
-]
+];
 
-const computer = new Computer()
+const computer = new Computer();
 for (const testCase of testCases) {
     test(JSON.stringify(testCase.program), () => {
-        computer.load(testCase.program)
-        computer.run()
-        expect(computer.memory).toEqual(testCase.want)
-    })
+        computer.load(testCase.program);
+        computer.run();
+        expect(computer.memory).toEqual(testCase.want);
+    });
 }

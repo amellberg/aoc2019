@@ -8,13 +8,13 @@ const Instr = {
     JumpIfFalse: 6,
     LessThan: 7,
     Equals: 8,
-    Halt: 99
+    Halt: 99,
 };
 
 // Parameter modes
 const PMode = {
     Position: 0, // Treat parameter as a pointer to another memory value
-    Immediate: 1 // Treat parameter as a direct value
+    Immediate: 1, // Treat parameter as a direct value
 };
 
 class Computer {
@@ -50,7 +50,7 @@ class Computer {
         return {
             a: x === PMode.Position ? this.memory[this.ip + 1] : this.ip + 1,
             b: y === PMode.Position ? this.memory[this.ip + 2] : this.ip + 2,
-            c: z === PMode.Position ? this.memory[this.ip + 3] : this.ip + 3
+            c: z === PMode.Position ? this.memory[this.ip + 3] : this.ip + 3,
         };
     }
 
