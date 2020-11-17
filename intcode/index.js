@@ -28,11 +28,11 @@ class Computer {
         this.ip = 0;
     }
 
-    run(input) {
+    run(...input) {
         this.input = input;
         const output = [];
         let res;
-        for (;;) {
+        for (; ;) {
             const { op, pmodes } = parseInstruction(this.memory[this.ip]);
             if (op === Instr.Halt) break;
             if ((res = this.exec(op, this.paramVals(pmodes))) !== undefined) {
@@ -68,7 +68,7 @@ class Computer {
                 this.ip += 4;
                 return;
             case Instr.SaveInput:
-                this.memory[a] = this.input;
+                this.memory[a] = this.input.shift();
                 this.ip += 2;
                 return;
             case Instr.Output:
